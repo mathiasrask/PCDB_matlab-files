@@ -45,17 +45,29 @@ clear all
 close all
 clc
 
-cpk = 1;
-target = 100;
-mu = 99.98;
-sigma = 0.1381 /3*cpk;
+c_pk = 5/3; % 1.6667
+target = 100; % mm  (m)
+ITG = 10;
+C_a = 0.2;
+
+% C_a = 1 - |mu - m| / d
+% C_a * d = d - |mu - m|
+% d - C_a * d = mu - m   // release abs
+% mu = d - C_a * d + m
+
+tolerenceWidth = Utilities.dimAndITGradeToTol(target, ITG);
+d = tolerenceWidth/2; % half specification width
+
+mu = d - C_a * d + target;
+
+sigma = (d - abs(mu - target) ) /(3*c_pk);
 
 sample_size = 12; 
 sample_sets = 20;
 
 pd = makedist('Normal', 'mu', mu, 'sigma', sigma);
 
-rng('default');
+%rng('default');
 
 runs = 100;
 h = waitbar(0,'Running montecarlo simulation')
@@ -67,9 +79,9 @@ for i= 1:runs
         sample_std(j) = std(samples(:,j));
         sample_mean(j) = mean(samples(:,j));
         sample_meanshift(j) = target - sample_mean(j);
-        sample_tol(j) = Utilities.meanshiftAndStdAndCpkToPCSL(sample_meanshift(j),sample_std(j),cpk);
+        sample_PCSL(j) = Utilities.meanshiftAndStdAndCpkToPCSL(sample_meanshift(j),sample_std(j),c_pk);
 
-        ITvals_3(j) = Utilities.dimAndTolToITGrade(target,sample_tol(j));
+        ITvals_3(j) = Utilities.dimAndTolToITGrade(target,sample_PCSL(j)*2);
     end
 
     %[sample_std' , sample_meanshift', sample_tol', ITvals_3']
@@ -81,8 +93,9 @@ end
 close(h)
 
 monte_std = std(sets_mean);
-monte_mean = mean(sets_mean);
+monte_mean = mean(sets_mean)
 pd = makedist('Normal', 'mu', monte_mean, 'sigma', monte_std);
+
 lowerConfidenceLimit = icdf(pd, 0.025)
 upperConfidenceLimit = icdf(pd, 0.975)
 confidenreceIntevalWidth = upperConfidenceLimit-lowerConfidenceLimit
