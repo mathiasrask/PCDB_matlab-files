@@ -5,7 +5,7 @@ close all
 %%% statistical simulation of generalized product capability %%%
 
 % 1 simulate effect of converting from IT dist to PCSL & dim and back
-
+if (0)
 mu = 10;
 sigma = 1;
 pd = makedist('Normal', 'mu', mu, 'sigma', sigma);
@@ -37,91 +37,99 @@ histfit(tolerenceWidths)
 ITvals_2 = Utilities.dimAndTolToITGrade(dimensions, tolerenceWidths);
 
 [ITvals, dimensions, tolerenceWidths, ITvals-ITvals_2]
-
+end 
 %r = normrnd(10,1,10,1)
 
 %% 
-
-clc
-clear all
-close all
+if (1)
 
 c_pk = 5/3; % 1.6667
 target = 100; % mm  (m)
 
-sample_size = 3; 
-sample_sets = 3;
+sample_size = 10; 
+sample_sets = 20;
 
 ITG_mean = 10;
 ITG_std = 1;
-
-pd = makedist('Normal', 'mu', ITG_mean, 'sigma', ITG_std);
-
-ITG = icdf(pd, rand(sample_sets,1));
 C_a = 0.2;
 
-% C_a = 1 - |mu - m| / d
-% C_a * d = d - |mu - m|
-% d - C_a * d = mu - m   // release abs
-% mu = d - C_a * d + m
-
-tolerenceWidth = Utilities.dimAndITGradeToTol(target, ITG);
-d = tolerenceWidth/2; % half specification width
-
-mu = (1-C_a) * d + target;
-
-sigma = (d - abs(mu - target) ) /(3*c_pk);
+ITGradesPD = makedist('Normal', 'mu', ITG_mean, 'sigma', ITG_std);
 
 
-for i = 1:length(mu)
-    pd(i) = makedist('Normal', 'mu', mu(i), 'sigma', sigma(i));
-end
-
-%rng('default');
-
-runs = 100;
+runs = 40;
 h = waitbar(0,'Running montecarlo simulation')
 
-k_coef =1:3:99;
+probability =0.025:0.025:0.975;
+
+sets_mean = zeros( sample_sets, 1);
+sets_std = zeros( sample_sets, 1);
+ITG_samplesets = zeros(sample_sets, 1);
+ITGatProperbility = zeros(sample_sets,length(probability));
 
 for i= 1:runs
+
+    % Calculate the ITgrades for each sample set
+    ITG = icdf(ITGradesPD, rand(sample_sets,1));
+    
+    % C_a = 1 - |mu - m| / d
+    % C_a * d = d - |mu - m|
+    % d - C_a * d = mu - m   // release abs
+    % mu = d - C_a * d + m
+
+    tolerenceWidth = Utilities.dimAndITGradeToTol(target, ITG);
+    d = tolerenceWidth/2; % half specification width
+    mu = (1-C_a) * d + target;
+    sigma = (d - abs(mu - target) ) /(3*c_pk);
+    
+    
     for j = 1:sample_sets  
         
-        samples(:,j) = icdf(pd(j), rand(sample_size,1));
+        sampleSetPD = makedist('Normal', 'mu', mu(j), 'sigma', sigma(j));
+        
+        samples = icdf(sampleSetPD, rand(sample_size,1));
 
-        sample_std(j) = std(samples(:,j));
-        sample_mean(j) = mean(samples(:,j));
-        sample_meanshift(j) = target - sample_mean(j);
-        sample_PCSL(j) = Utilities.meanshiftAndStdAndCpkToPCSL(sample_meanshift(j),sample_std(j),c_pk);
+        sample_std = std(samples);
+        sample_mean = mean(samples);
+        sample_meanshift = target - sample_mean;
+        sample_PCSL = Utilities.meanshiftAndStdAndCpkToPCSL(sample_meanshift,sample_std,c_pk);
 
-        ITvals_3(j) = Utilities.dimAndTolToITGrade(target,sample_PCSL(j)*2);
+        ITG_samplesets(j) = Utilities.dimAndTolToITGrade(target,sample_PCSL*2);
     end
 
     %[sample_std' , sample_meanshift', sample_tol', ITvals_3']
 
-    sets_mean(i) = mean(ITvals_3);
-    sets_std(i) = std(ITvals_3);
+    sets_mean(i) = mean(ITG_samplesets);
+    sets_std(i) = std(ITG_samplesets);
     
-    prod = makedist('Normal', 'mu', sets_mean(i), 'sigma', sets_std(i));
+    setsdist = makedist('Normal', 'mu', sets_mean(i), 'sigma', sets_std(i));
     
     
-    for k = 1:length(k_coef)
-        CL(i,k) = icdf(prod, k_coef(k)/100);
+    for k = 1:length(probability)
+        ITGatProperbility(i,k) = icdf(setsdist, probability(k));
     end
    
     waitbar(i/runs)
 end
 close(h)
 
-for i = 1:length(k_coef)
-    [low(i),mid(i),upp(i),wid(i)] = Utilities.ConfidenceLimit(CL(:,i));
+for i = 1:length(probability)
+    [low(i),mid(i),upp(i),wid(i)] = Utilities.ConfidenceLimit(ITGatProperbility(:,i));
 end
 
 figure ()
 hold on
-plot(low,k_coef,'r')
-plot(mid,k_coef,'b')
-plot(upp,k_coef,'r')
+plot(low,probability,'r')
+plot(mid,probability,'b')
+plot(upp,probability,'r')
 
+figure()
+plot(probability, wid)
+
+
+end
+
+
+
+%%%
 
 
