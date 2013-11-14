@@ -48,7 +48,7 @@ clc
 c_pk = 5/3; % 1.6667
 target = 100; % mm  (m)
 ITG = 10;
-C_a = 0.2;
+C_a = 0.98;
 
 % C_a = 1 - |mu - m| / d
 % C_a * d = d - |mu - m|
@@ -62,14 +62,14 @@ mu = d - C_a * d + target;
 
 sigma = (d - abs(mu - target) ) /(3*c_pk);
 
-sample_size = 12; 
-sample_sets = 20;
+sample_size = 3; 
+sample_sets = 10;
 
 pd = makedist('Normal', 'mu', mu, 'sigma', sigma);
 
 %rng('default');
 
-runs = 100;
+runs = 1000;
 h = waitbar(0,'Running montecarlo simulation')
 
 for i= 1:runs
