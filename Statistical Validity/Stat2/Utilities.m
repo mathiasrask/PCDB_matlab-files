@@ -31,8 +31,12 @@ classdef Utilities
 
             % This function recives two evenly long vecotrs of the nominal dimension
             % in milimeters and tolerance in  micrometers
-            
-            
+            if length(dimension) < length(ITgrade)
+                dimension = dimension * ones(length(ITgrade));
+            elseif length(dimension) > length(ITgrade)
+                ITgrade = ITgrade * ones(length(dimension));
+            end
+                
             vectorLength = length(ITgrade);
             tolerancewidth = zeros(vectorLength,1);
             
@@ -48,6 +52,17 @@ classdef Utilities
         
         function [PCSL] = meanshiftAndStdAndCpkToPCSL(meanshift, std, cpk)
             PCSL = 3*cpk.*std + abs(meanshift);
+        end
+        
+        function [lowerConfidenceLimit,midConfidenceLimit,upperConfidenceLimit,confidenreceIntevalWidth] = ConfidenceLimit (list_values)
+            monte_std = std(list_values);
+            monte_mean = mean(list_values);
+            pd = makedist('Normal', 'mu', monte_mean, 'sigma', monte_std);
+
+            lowerConfidenceLimit = icdf(pd, 0.025);
+            midConfidenceLimit = icdf(pd, 0.5);
+            upperConfidenceLimit = icdf(pd, 0.975);
+            confidenreceIntevalWidth = upperConfidenceLimit-lowerConfidenceLimit;
         end
     end
 end

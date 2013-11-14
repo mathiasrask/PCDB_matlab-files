@@ -48,7 +48,7 @@ clc
 c_pk = 5/3; % 1.6667
 target = 100; % mm  (m)
 ITG = 10;
-C_a = 0.98;
+C_a = 0.1;
 
 % C_a = 1 - |mu - m| / d
 % C_a * d = d - |mu - m|
