@@ -53,20 +53,20 @@ if (1)
 c_pk = 5/3; % 1.6667
 target = 100; % mm  (m)
 
-sample_size = 10; 
-sample_sets = 20;
+sample_size = 3; 
+sample_sets = 10;
 
 biasCorrectionFactor_c4 = sqrt(2/(sample_size - 1)) * gamma(sample_size/2)/gamma((sample_size-1)/2)
 
 
 ITG_mean = 10;
 ITG_std = 1;
-C_a = 0.1;
+C_a = 0.9;
 
 ITGradesPD = makedist('Normal', 'mu', ITG_mean, 'sigma', ITG_std);
 
 
-runs = 100;
+runs = 1000;
 h = waitbar(0,'Running montecarlo simulation');
 
 probability =0.025:0.025:0.975;
@@ -98,7 +98,7 @@ for i= 1:runs
         
         samples = icdf(sampleSetPD, rand(sample_size,1));
         
-        sample_std = std(samples)
+        sample_std = std(samples);
         %sample_std = std(samples,1)/biasCorrectionFactor_c4;
         
         % bias correction
@@ -148,8 +148,8 @@ xcdf = cdf(ITGradesPD, x);
 [xc, wsi] = binofit(xcdf*sample_sets,sample_sets,0.05);
 
 plot(x,xc, 'b-.')
-plot(x, wsi(:,1), 'r-.')
-plot(x, wsi(:,2), 'r-.')
+%plot(x, wsi(:,1), 'r-.')
+%plot(x, wsi(:,2), 'r-.')
 
 
 figure()
