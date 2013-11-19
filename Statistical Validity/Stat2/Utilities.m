@@ -9,7 +9,7 @@ classdef Utilities
     end
     
     methods (Static)
-       
+       %%
         function [ITG] = dimAndTolToITGrade (dimension,tolerencewidth)
 
             % This function recives two evenly long vecotrs of the nominal dimension
@@ -26,7 +26,7 @@ classdef Utilities
                 end
             end
         end
-        
+        %%
         function [tolerancewidth] = dimAndITGradeToTol(dimension, ITgrade)
 
             % This function recives two evenly long vecotrs of the nominal dimension
@@ -49,11 +49,11 @@ classdef Utilities
             end
 
         end
-        
+        %%
         function [PCSL] = meanshiftAndStdAndCpkToPCSL(meanshift, std, cpk)
             PCSL = 3*cpk.*std + abs(meanshift);
         end
-        
+        %%
         function [lowerConfidenceLimit,midConfidenceLimit,upperConfidenceLimit,confidenreceIntevalWidth] = ConfidenceLimit (list_values)
             monte_std = std(list_values);
             monte_mean = mean(list_values);
@@ -64,7 +64,7 @@ classdef Utilities
             upperConfidenceLimit = icdf(pd, 0.975);
             confidenreceIntevalWidth = upperConfidenceLimit-lowerConfidenceLimit;
         end
-        
+        %%
         function [xc, wsi] = wilson(x,n,alpha)
             %WILSON Centers and Wilson Score Intervals for binomial data.
             %   XC = WILSON(X,N) Returns the center of the Wilson Score Interval for the
@@ -131,7 +131,61 @@ classdef Utilities
             wsi=[xc(:) xc(:)]+[-halfwidth(:) halfwidth(:)];
 
 
+        end
+        %%
+        function [cofidentWidth] = montecarloCLwidth (runs, sample_size, sample_sets, probability)
+            
+            % Generate data
+            c_pk = 5/3; % 1.6667
+            target = 100; % mm  (m)
+            
+            ITG_mean = 10;
+            ITG_std = 1;
+            C_a = 0.9;
+
+            ITGradesPD = makedist('Normal', 'mu', ITG_mean, 'sigma', ITG_std);
+            
+            % initialise
+            sets_mean = zeros( sample_sets, 1);
+            sets_std = zeros( sample_sets, 1);
+            ITG_samplesets = zeros(sample_sets, 1);
+            ITGatProperbility = zeros(sample_sets,length(probability));
+            
+            for i= 1:runs
+               
+                ITG = icdf(ITGradesPD, rand(sample_sets,1));
+                tolerenceWidth = Utilities.dimAndITGradeToTol(target, ITG);
+                d = tolerenceWidth/2; % half specification width
+                mu = (1-C_a) * d + target;
+                sigma = (d - abs(mu - target) ) /(3*c_pk);
+
+                for j = 1:sample_sets  
+
+                    sampleSetPD = makedist('Normal', 'mu', mu(j), 'sigma', sigma(j));
+                    samples = icdf(sampleSetPD, rand(sample_size,1));
+                    sample_std = std(samples);
+                    sample_mean = mean(samples);
+                    sample_meanshift = target - sample_mean;
+                    sample_PCSL = Utilities.meanshiftAndStdAndCpkToPCSL(sample_meanshift,sample_std,c_pk);
+
+                    ITG_samplesets(j) = Utilities.dimAndTolToITGrade(target,sample_PCSL*2);
+                end
+
+                sets_mean(i) = mean(ITG_samplesets);
+                sets_std(i) = std(ITG_samplesets);
+
+                setsdist = makedist('Normal', 'mu', sets_mean(i), 'sigma', sets_std(i));
+
+                for k = 1:length(probability)
+                    ITGatProperbility(i,k) = icdf(setsdist, probability(k));
+                end
+            end 
+            for i = 1:length(probability)
+                [~,~,~,wid(i)] = Utilities.ConfidenceLimit(ITGatProperbility(:,i));
             end
+            
+            cofidentWidth = wid;
+        end    
     end
 end
 
