@@ -50,8 +50,12 @@ classdef Utilities
 
         end
         %%
-        function [PCSL] = meanshiftAndStdAndCpkToPCSL(meanshift, std, cpk)
-            PCSL = 3*cpk.*std + abs(meanshift);
+        function [PCSL] = meanshiftAndStdAndCpkToPCSL(meanshift, err_std, cpk)
+            vectorlength = length(err_std);
+            
+            for i = 1:vectorlength
+                PCSL(i) = 3*cpk*err_std(i) + abs(meanshift(i));
+            end
         end
         %%
         function [lowerConfidenceLimit,midConfidenceLimit,upperConfidenceLimit,confidenreceIntevalWidth] = ConfidenceLimit (list_values)
@@ -151,16 +155,16 @@ classdef Utilities
             ITG_samplesets = zeros(sample_sets, 1);
             ITGatProperbility = zeros(sample_sets,length(probability));
             
-            for i= 1:runs
+            parfor i= 1:runs
                
                 %ITG = icdf(ITGradesPD, rand(sample_sets,1));
-                ITG = norminv(rand(sample_sets,1),ITG_mean,ITG_std);
+                ITG = norminv(rand(sample_sets,1),ITG_mean,ITG_std)
                 tolerenceWidth = Utilities.dimAndITGradeToTol(target, ITG);
                 d = tolerenceWidth/2; % half specification width
                 mu = (1-C_a) * d + target;
                 sigma = (d - abs(mu - target) ) /(3*c_pk);
 
-                parfor j = 1:sample_sets  
+                for j = 1:sample_sets  
 
                     %sampleSetPD = makedist('Normal', 'mu', mu(j), 'sigma', sigma(j));
                     %samples = icdf(sampleSetPD, rand(sample_size,1));
@@ -190,6 +194,50 @@ classdef Utilities
             cofidentWidth = wid;
         end 
         
+        %%
+        function [x,y] = dataToAccumFrequncyPlot (lst_std, lst_mean)
+          
+            y = 0.001:0.01:0.999; %linspace(lst_min,lst_max,100);
+            
+            x = icdf('norm',y,lst_mean,lst_std);
+            
+        end
+        %%
+        function [s_std , s_mean, s_num, s_index] = listSorting (data, sort_lst)
+            
+            % Take a list of data and a sorting index vector
+            % returns a standard deviation and mean of data of each group
+            
+            vectorlength = length(sort_lst);
+            
+            indicies =[];
+            for i= 1:vectorlength
+                if isnan(sort_lst(i))
+                elseif ismember(sort_lst(i),indicies)
+                else
+                    indicies = [indicies sort_lst(i)];
+                end
+            end
+            
+            indiciesLength = length(indicies);
+            
+            s = NaN(indiciesLength,vectorlength);
+            
+            for i = 1:indiciesLength
+                index = find(sort_lst == indicies(i));
+                s_num(i) = length(index);
+                for j=1:length(index)
+                    s(i,j) = data(index(j));
+                end
+            end
+           
+            for i=1:indiciesLength
+            s_std(i) = nanstd(s(i,:));
+            s_mean(i) = nanmean(s(i,:));
+            end
+            
+            s_index = indicies;
+        end
     end
 end
 
