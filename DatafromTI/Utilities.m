@@ -155,7 +155,7 @@ classdef Utilities
             ITG_samplesets = zeros(sample_sets, 1);
             ITGatProperbility = zeros(sample_sets,length(probability));
             
-            parfor i= 1:runs
+            for i= 1:runs
                
                 %ITG = icdf(ITGradesPD, rand(sample_sets,1));
                 ITG = norminv(rand(sample_sets,1),ITG_mean,ITG_std)
@@ -203,7 +203,7 @@ classdef Utilities
             
         end
         %%
-        function [s_std , s_mean, s_num, s_index] = listSorting (data, sort_lst)
+        function [s_std , s_mean, s_num, s_index, s_x, s_y] = listSorting (data, sort_lst)
             
             % Take a list of data and a sorting index vector
             % returns a standard deviation and mean of data of each group
@@ -221,22 +221,34 @@ classdef Utilities
             
             indiciesLength = length(indicies);
             
+             
             s = NaN(indiciesLength,vectorlength);
+            s_y = NaN(indiciesLength,vectorlength);
+           
             
             for i = 1:indiciesLength
                 index = find(sort_lst == indicies(i));
                 s_num(i) = length(index);
+                s_ylin = linspace(0,1,s_num(i));
                 for j=1:length(index)
                     s(i,j) = data(index(j));
+                    s_y(i,j) = s_ylin(j);
                 end
+                s_x(i,:) = sort(s(i,:));
             end
            
+            
+            
+            
+            
             for i=1:indiciesLength
             s_std(i) = nanstd(s(i,:));
             s_mean(i) = nanmean(s(i,:));
             end
             
             s_index = indicies;
+            
+            
         end
     end
 end
