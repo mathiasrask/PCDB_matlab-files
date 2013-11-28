@@ -53,7 +53,7 @@ if (1)
 c_pk = 5/3; % 1.6667
 target = 100; % mm  (m)
 
-sample_size = 10; 
+sample_size = 100; 
 sample_sets = 20;
 
 biasCorrectionFactor_c4 = sqrt(2/(sample_size - 1)) * gamma(sample_size/2)/gamma((sample_size-1)/2)
@@ -61,12 +61,12 @@ biasCorrectionFactor_c4 = sqrt(2/(sample_size - 1)) * gamma(sample_size/2)/gamma
 
 ITG_mean = 10;
 ITG_std = 1;
-C_a = 0.98;
+C_a = 0.6;
 
-ITGradesPD = makedist('Normal', 'mu', ITG_mean, 'sigma', ITG_std);
+%ITGradesPD = makedist('Normal', 'mu', ITG_mean, 'sigma', ITG_std);
 
 
-runs = 100;
+runs = 1000;
 h = waitbar(0,'Running montecarlo simulation');
 
 probability =0.025:0.025:0.975;
@@ -76,33 +76,17 @@ sets_std = zeros( sample_sets, 1);
 ITG_samplesets = zeros(sample_sets, 1);
 ITGatProperbility = zeros(sample_sets,length(probability));
 
-for i= 1:runs
-
-    % Calculate the ITgrades for each sample set
-    ITG = icdf(ITGradesPD, rand(sample_sets,1));
-    
-    % C_a = 1 - |mu - m| / d
-    % C_a * d = d - |mu - m|
-    % d - C_a * d = mu - m   // release abs
-    % mu = d - C_a * d + m
-
+for i= 1:runs                
+    ITG = norminv(rand(sample_sets,1),ITG_mean,ITG_std);
     tolerenceWidth = Utilities.dimAndITGradeToTol(target, ITG);
     d = tolerenceWidth/2; % half specification width
     mu = (1-C_a) * d + target;
     sigma = (d - abs(mu - target) ) /(3*c_pk);
-    
-    
+
     for j = 1:sample_sets  
         
-        sampleSetPD = makedist('Normal', 'mu', mu(j), 'sigma', sigma(j));
-        
-        samples = icdf(sampleSetPD, rand(sample_size,1));
-        
-        sample_std = std(samples);
-        %sample_std = std(samples,1)/biasCorrectionFactor_c4;
-        
-        % bias correction
-        
+        samples = norminv(rand(sample_size,1),mu(j),sigma(j));
+        sample_std = std(samples)/biasCorrectionFactor_c4;
         sample_mean = mean(samples);
         sample_meanshift = target - sample_mean;
         sample_PCSL = Utilities.meanshiftAndStdAndCpkToPCSL(sample_meanshift,sample_std,c_pk);
@@ -110,19 +94,16 @@ for i= 1:runs
         ITG_samplesets(j) = Utilities.dimAndTolToITGrade(target,sample_PCSL*2);
     end
 
-    %[sample_std' , sample_meanshift', sample_tol', ITvals_3']
-
     sets_mean(i) = mean(ITG_samplesets);
     sets_std(i) = std(ITG_samplesets);
-    
-    setsdist = makedist('Normal', 'mu', sets_mean(i), 'sigma', sets_std(i));
-    
-    
+
     for k = 1:length(probability)
-        ITGatProperbility(i,k) = icdf(setsdist, probability(k));
+        ITGatProperbility(i,k) = norminv(probability(k),sets_mean(i),sets_std(i));
     end
-   
-    waitbar(i/runs)
+    
+    if (rem(i,runs/20)==0)
+        waitbar(i/runs)
+    end
 end
 close(h)
 
@@ -142,8 +123,8 @@ plot(upp,probability,'r')
 
 x = linspace(6,14,100);
 
-xpdf = pdf(ITGradesPD, x);
-xcdf = cdf(ITGradesPD, x);
+%xpdf = normpdf(x, ITG_mean, ITG_std);
+xcdf = normcdf(x, ITG_mean, ITG_std);
 [xc, wsi] = Utilities.wilson(xcdf*sample_sets,sample_sets,0.05);
 %[xc, wsi] = binofit(xcdf*sample_sets,sample_sets,0.05);
 
@@ -158,29 +139,4 @@ plot(probability, wid)
 
 end
 
-%%%
-
-%%
-if (0)
-
-samples_sets = 20;
-mu = 10;
-sigma = 1;
-pd = makedist('Normal', 'mu', mu, 'sigma', sigma);
-x = linspace(6,14,100);
-
-xpdf = pdf(pd, x);
-xcdf = cdf(pd, x);
-[xc, wsi] = Utilities.wilson(xcdf*samples_sets,samples_sets,0.05);
-%[xc, wsi] = binofit(xcdf*samples_sets,samples_sets,0.05);
-
-figure()
-hold on
-plot(x,xc, 'r')
-plot(x, wsi(:,1))
-plot(x, wsi(:,2))
-
-
-
-end
 

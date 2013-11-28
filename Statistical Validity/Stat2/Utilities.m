@@ -57,11 +57,10 @@ classdef Utilities
         function [lowerConfidenceLimit,midConfidenceLimit,upperConfidenceLimit,confidenreceIntevalWidth] = ConfidenceLimit (list_values)
             monte_std = std(list_values);
             monte_mean = mean(list_values);
-            pd = makedist('Normal', 'mu', monte_mean, 'sigma', monte_std);
-
-            lowerConfidenceLimit = icdf(pd, 0.025);
-            midConfidenceLimit = icdf(pd, 0.5);
-            upperConfidenceLimit = icdf(pd, 0.975);
+            
+            lowerConfidenceLimit = norminv(0.025, monte_mean, monte_std);
+            midConfidenceLimit = norminv(0.5, monte_mean, monte_std);
+            upperConfidenceLimit = norminv(0.975, monte_mean, monte_std);
             confidenreceIntevalWidth = upperConfidenceLimit-lowerConfidenceLimit;
         end
         %%
