@@ -140,7 +140,7 @@ classdef Utilities
             
             ITG_mean = 10;
             ITG_std = 1;
-            C_a = 0.9;
+            C_a = 0.6;
 
             %ITGradesPD = makedist('Normal', 'mu', ITG_mean, 'sigma', ITG_std);
             
@@ -149,6 +149,9 @@ classdef Utilities
             sets_std = zeros( sample_sets, 1);
             ITG_samplesets = zeros(sample_sets, 1);
             ITGatProperbility = zeros(sample_sets,length(probability));
+            
+            biasCorrectionFactor_c4 = sqrt(2/(sample_size - 1)) * gamma(sample_size/2)/gamma((sample_size-1)/2);
+            biasCorrectionFactor_c4_sampleset = sqrt(2/(sample_sets - 1)) * gamma(sample_sets/2)/gamma((sample_sets-1)/2);
             
             for i= 1:runs
                
@@ -164,7 +167,7 @@ classdef Utilities
                     %sampleSetPD = makedist('Normal', 'mu', mu(j), 'sigma', sigma(j));
                     %samples = icdf(sampleSetPD, rand(sample_size,1));
                     samples = norminv(rand(sample_size,1),mu(j),sigma(j));
-                    sample_std = std(samples);
+                    sample_std = std(samples)/biasCorrectionFactor_c4;
                     sample_mean = mean(samples);
                     sample_meanshift = target - sample_mean;
                     sample_PCSL = Utilities.meanshiftAndStdAndCpkToPCSL(sample_meanshift,sample_std,c_pk);
@@ -173,7 +176,7 @@ classdef Utilities
                 end
 
                 sets_mean(i) = mean(ITG_samplesets);
-                sets_std(i) = std(ITG_samplesets);
+                sets_std(i) = std(ITG_samplesets)/biasCorrectionFactor_c4_sampleset;
 
                 %setsdist = makedist('Normal', 'mu', sets_mean(i), 'sigma', sets_std(i));
 
