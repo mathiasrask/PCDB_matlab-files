@@ -50,7 +50,7 @@ plot(x2,y2,'g')
 plot(x3,y3,'k')
 %plot(x4,y4,'m')
 axis([0 200 0 1.2])
-legend('ANSI B4-2', 'NFT58000','DS812','DIN7168','ISO286-2','location','southeast')
+legend('ANSI B4-2', 'NFT58000','DIN 16901','DIN7168','ISO286-2','location','southeast')
 xlabel('Dimension')
 ylabel('Tolerance')
 set(gcf, 'Color', 'w');

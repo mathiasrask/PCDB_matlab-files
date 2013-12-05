@@ -30,7 +30,7 @@ hold on
 plot(v,sigmaseries, 'r')
 plot(v,confL, 'b-.')
 plot(v,confH, 'b-.')
-xlabel('n - number of samples')
+xlabel('samples size')
 ylabel('Standard deviation (Std)')
 %title('Sample standard deviation')
 legend('sample std.', '95 % confidence interval')
@@ -54,7 +54,7 @@ hold on
 plot(v,biasseries, 'r')
 plot(v,confL, 'b-.')
 plot(v,confH, 'b-.')
-xlabel('n - number of samples')
+xlabel('samples size')
 ylabel('Bias (std)')
 legend('sample bias', '95 % confidence interval')
 set(gcf, 'Color', 'w');

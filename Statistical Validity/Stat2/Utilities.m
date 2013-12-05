@@ -150,61 +150,8 @@ classdef Utilities
             ITG_samplesets = zeros(sample_sets, 1);
             ITGatProperbility = zeros(sample_sets,length(probability));
             
-            for i= 1:runs
-               
-                %ITG = icdf(ITGradesPD, rand(sample_sets,1));
-                ITG = norminv(rand(sample_sets,1),ITG_mean,ITG_std);
-                tolerenceWidth = Utilities.dimAndITGradeToTol(target, ITG);
-                d = tolerenceWidth/2; % half specification width
-                mu = (1-C_a) * d + target;
-                sigma = (d - abs(mu - target) ) /(3*c_pk);
-
-                parfor j = 1:sample_sets  
-
-                    %sampleSetPD = makedist('Normal', 'mu', mu(j), 'sigma', sigma(j));
-                    %samples = icdf(sampleSetPD, rand(sample_size,1));
-                    samples = norminv(rand(sample_size,1),mu(j),sigma(j));
-                    sample_std = std(samples);
-                    sample_mean = mean(samples);
-                    sample_meanshift = target - sample_mean;
-                    sample_PCSL = Utilities.meanshiftAndStdAndCpkToPCSL(sample_meanshift,sample_std,c_pk);
-
-                    ITG_samplesets(j) = Utilities.dimAndTolToITGrade(target,sample_PCSL*2);
-                end
-
-                sets_mean(i) = mean(ITG_samplesets);
-                sets_std(i) = std(ITG_samplesets);
-
-                %setsdist = makedist('Normal', 'mu', sets_mean(i), 'sigma', sets_std(i));
-
-                for k = 1:length(probability)
-                    %ITGatProperbility(i,k) = icdf(setsdist, probability(k));
-                    ITGatProperbility(i,k) = norminv(probability(k),sets_mean(i),sets_std(i));
-                end
-            end 
-            for i = 1:length(probability)
-                [~,~,~,wid(i)] = Utilities.ConfidenceLimit(ITGatProperbility(:,i));
-            end
-            
-            cofidentWidth = wid;
-        end 
-        
-        function [cofidentWidth] = montecarloCLwidthSTD (runs, sample_size, sample_sets, probability, ITG_std)
-            
-            % Generate data
-            c_pk = 5/3; % 1.6667
-            target = 100; % mm  (m)
-            
-            ITG_mean = 10;
-            C_a = 0.6;
-
-            %ITGradesPD = makedist('Normal', 'mu', ITG_mean, 'sigma', ITG_std);
-            
-            % initialise
-            sets_mean = zeros( sample_sets, 1);
-            sets_std = zeros( sample_sets, 1);
-            ITG_samplesets = zeros(sample_sets, 1);
-            ITGatProperbility = zeros(sample_sets,length(probability));
+            biasCorrectionFactor_c4 = sqrt(2/(sample_size - 1)) * gamma(sample_size/2)/gamma((sample_size-1)/2);
+            biasCorrectionFactor_c4_sampleset = sqrt(2/(sample_sets - 1)) * gamma(sample_sets/2)/gamma((sample_sets-1)/2);
             
             for i= 1:runs
                
@@ -220,7 +167,7 @@ classdef Utilities
                     %sampleSetPD = makedist('Normal', 'mu', mu(j), 'sigma', sigma(j));
                     %samples = icdf(sampleSetPD, rand(sample_size,1));
                     samples = norminv(rand(sample_size,1),mu(j),sigma(j));
-                    sample_std = std(samples);
+                    sample_std = std(samples)/biasCorrectionFactor_c4;
                     sample_mean = mean(samples);
                     sample_meanshift = target - sample_mean;
                     sample_PCSL = Utilities.meanshiftAndStdAndCpkToPCSL(sample_meanshift,sample_std,c_pk);
@@ -229,7 +176,7 @@ classdef Utilities
                 end
 
                 sets_mean(i) = mean(ITG_samplesets);
-                sets_std(i) = std(ITG_samplesets);
+                sets_std(i) = std(ITG_samplesets)/biasCorrectionFactor_c4_sampleset;
 
                 %setsdist = makedist('Normal', 'mu', sets_mean(i), 'sigma', sets_std(i));
 
