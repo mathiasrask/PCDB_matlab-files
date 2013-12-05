@@ -17,14 +17,13 @@ tic
 for j = 1:sampleSizeListLength
     sampleSize = sampleSizeList(j);
     
-    samples = zeros(sampleSize,1);
-    
     biasCorrectionFactor_c4 = sqrt(2/(sampleSize - 1)) * gamma(sampleSize/2)/gamma((sampleSize-1)/2);
     
     std_star_size = zeros(N,1);
     mean_star_size = zeros(N,1);
     
-    for n=1:N
+    parfor n=1:N
+        samples = zeros(sampleSize,1);
         for i=1:sampleSize
             samples(i) = norminv(rand(),mu, sigma);
         end
