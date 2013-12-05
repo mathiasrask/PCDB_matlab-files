@@ -210,6 +210,11 @@ classdef Utilities
             
             vectorlength = length(sort_lst);
             
+            nandata = find(isnan(data)==1);
+            
+            sort_lst(nandata) = NaN;
+            
+            %
             indicies =[];
             for i= 1:vectorlength
                 if isnan(sort_lst(i))
@@ -237,7 +242,7 @@ classdef Utilities
                 s_x(i,:) = sort(s(i,:));
             end
            
-            
+           
             
             
             

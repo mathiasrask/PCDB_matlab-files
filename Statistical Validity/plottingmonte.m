@@ -18,24 +18,43 @@ load 'Stat2/CLW90.mat'
 
 [x,y] = size(CLW90)
 
+goodvector = [1,2,4,5]
+
+if 0
 f2=figure()
 hold on
 box off
-plot(sample_sets,CLW90)
-legend('3', '7','11','15','19','23')
+plot(sample_sets,CLW90(:,goodvector))
+legend('3', '5','12','20')
 xlabel('Measurement sets')
 ylabel('Cofidence interval limit width')
 set(gcf, 'Color', 'w');
 set(f2, 'units', 'centimeters', 'pos', [0 0 8 8])
 hold off
 export_fig('CLW90_lines.pdf')
+end
 
+if  0
 f3 = figure()
-surf(sample_size,sample_sets,CLW90)
+surf(sample_size(goodvector),sample_sets,CLW90(:,goodvector))
 xlabel('Measurement sets')
 ylabel('Sample size')
 zlabel('Cofidence interval limit width')
 set(gcf, 'Color', 'w');
 set(f3, 'units', 'centimeters', 'pos', [0 0 8 8])
-
 export_fig('CLW90_surf.pdf')
+end
+
+if 1
+    fi1 = fit(sample_sets',CLW90(:,1),'exp2')
+    fi2 = fit(sample_sets',CLW90(:,2),'exp2')
+    fi3 = fit(sample_sets',CLW90(:,4),'exp2')
+    fi4 = fit(sample_sets',CLW90(:,5),'exp2')
+    f4 = figure ()
+    hold on
+    plot(fi1,sample_sets',CLW90(:,1))
+    plot(fi2,sample_sets',CLW90(:,2))
+    plot(fi3,sample_sets',CLW90(:,4))
+    plot(fi4,sample_sets',CLW90(:,:))
+
+end
