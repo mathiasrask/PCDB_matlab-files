@@ -20,14 +20,14 @@ load 'Stat2/CLW90.mat'
 
 goodvector = [1,2,4,5]
 
-if 0
+if 1
 f2=figure()
 hold on
 box off
-plot(sample_sets,CLW90(:,goodvector))
+plot(sample_sets,CLW90(:,goodvector)./2)
 legend('3', '5','12','20')
 xlabel('Measurement sets')
-ylabel('Cofidence interval limit width')
+ylabel('Symetric cofidence interval (IT Grade)')
 set(gcf, 'Color', 'w');
 set(f2, 'units', 'centimeters', 'pos', [0 0 8 8])
 hold off
@@ -45,7 +45,7 @@ set(f3, 'units', 'centimeters', 'pos', [0 0 8 8])
 export_fig('CLW90_surf.pdf')
 end
 
-if 1
+if 0
     fi1 = fit(sample_sets',CLW90(:,1),'exp2')
     fi2 = fit(sample_sets',CLW90(:,2),'exp2')
     fi3 = fit(sample_sets',CLW90(:,4),'exp2')
