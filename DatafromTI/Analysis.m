@@ -271,7 +271,7 @@ for run = 1:0
 end
 
 % Plot ITG .. total
-for run = 1
+for run = 1%:0
     
     [s_std, s_mean, s_num, s_index, s_x, s_y] = Utilities.listSorting(List_ITG, List_ALL);
 
@@ -288,12 +288,18 @@ for run = 1
 
         [xc(:,i), wsi(:,:,i)] = Utilities.wilson(xcdf(:,i)*floor(s_num(i)/factor),floor(s_num(i)/factor),0.05);
     end
+    
+    x1 = x-0.4;
+    x2 = x+0.4;
+    
     f2 = figure();
     hold on
     %plot(x,xc, 'b-.')
     plot(x,xcdf,'r');
-    %plot(x, wsi(:,1), '-.')
-    %plot(x, wsi(:,2), '-.')
+    %plot(x1,xcdf,'-.g');
+    %plot(x2,xcdf,'-.g');
+    plot(x, wsi(:,1), '-.m')
+    plot(x, wsi(:,2), '-.m')
     plot(s_x',s_y','.')
     xlim([7,16])
     
@@ -695,7 +701,7 @@ for run = 1:0
 end
 
 % IT GRADE vs. Specified IT GRADE
-for run = 1
+for run = 1:0
     f2 = figure();
     hold on 
     box off

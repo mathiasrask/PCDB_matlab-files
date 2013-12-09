@@ -45,9 +45,9 @@ y4 = [0.14,0.18,0.22,0.27,0.33,0.39,0.46,0.54,0.63,0.72]
 f2 = figure()
 hold on
 plot(D,T/1000)
-plot(x,y,'r')
-plot(x2,y2,'g')
-plot(x3,y3,'k')
+plot(x,y,'r--')
+plot(x2,y2,':','color',[0 0.5 0])
+plot(x3,y3,'k-.')
 %plot(x4,y4,'m')
 axis([0 200 0 1.2])
 legend('ANSI B4-2', 'NFT58000','DIN 16901','DIN7168','ISO286-2','location','southeast')
